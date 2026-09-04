@@ -1,0 +1,307 @@
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------ *
+ * Theme tokens
+ * Dark by default. Every colour the app uses is a token, which is what
+ * made the light theme below a second block of variables rather than a
+ * rewrite of every component.
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-canvas: #080b12;
+  --color-surface: #0e131d;
+  --color-surface-raised: #151c29;
+  --color-line: #1f2937;
+  --color-line-soft: #161e2b;
+
+  --color-ink: #e8edf7;
+  --color-ink-muted: #94a3b8;
+  --color-ink-faint: #5b6779;
+
+  --color-accent: #38bdf8;
+  --color-accent-deep: #0284c7;
+  --color-start: #34d399;
+  --color-goal: #fb7185;
+  --color-visited: #1e4f7a;
+  --color-frontier: #38bdf8;
+  --color-path: #fbbf24;
+  --color-wall: #33415a;
+  --color-bar: #4a6fa5;
+  --color-terrain: #7c5f2e;
+  --color-terrain-dot: #fde68a;
+
+  /* Interaction colours, so no component has to know which theme is on. */
+  --color-on-accent: #04121c;
+  --color-accent-hover: #7dd3fc;
+  --color-line-strong: #334155;
+  --color-surface-hover: #1b2432;
+  --color-danger-line: #7f1d1d;
+  --color-danger-ink: #fca5a5;
+  --shadow-panel: 0 18px 50px -24px rgb(0 0 0 / 0.9);
+  --shadow-accent: 0 8px 24px -10px rgb(56 189 248 / 0.85);
+
+  --font-sans: 'Inter var', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
+}
+
+/* ------------------------------------------------------------------ *
+ * Light theme
+ * Only the tokens change. Every component reads colour through a
+ * variable, so this block is the entire theme — no component knows
+ * which one is active.
+ * ------------------------------------------------------------------ */
+:root[data-theme='light'] {
+  --color-canvas: #f4f6fb;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f2f5fa;
+  --color-line: #d8dfeb;
+  --color-line-soft: #e6ebf4;
+
+  --color-ink: #0f172a;
+  --color-ink-muted: #475569;
+  --color-ink-faint: #7c889c;
+
+  --color-accent: #0369a1;
+  --color-accent-deep: #075985;
+  --color-start: #059669;
+  --color-goal: #e11d48;
+  /* Visited has to stay light enough for the amber path to read on top of it. */
+  --color-visited: #9fc6e8;
+  --color-frontier: #38bdf8;
+  --color-path: #f59e0b;
+  --color-wall: #64748b;
+  --color-bar: #7d9ec9;
+  --color-terrain: #c2830f;
+  --color-terrain-dot: #7c4a03;
+
+  --color-on-accent: #ffffff;
+  --color-accent-hover: #0284c7;
+  --color-line-strong: #94a3b8;
+  --color-surface-hover: #e9eef7;
+  --color-danger-line: #fca5a5;
+  --color-danger-ink: #b91c1c;
+  /* A black glow reads as dirt on a light ground; keep it faint and cool. */
+  --shadow-panel: 0 14px 40px -26px rgb(15 23 42 / 0.45);
+  --shadow-accent: 0 8px 22px -12px rgb(3 105 161 / 0.65);
+}
+
+html {
+  color-scheme: dark;
+  background-color: var(--color-canvas);
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle depth behind the whole app so the board reads as a lit surface. */
+.app-backdrop {
+  background:
+    radial-gradient(900px 500px at 15% -10%, rgb(56 189 248 / 0.09), transparent 60%),
+    radial-gradient(700px 460px at 92% 0%, rgb(167 139 250 / 0.08), transparent 62%),
+    var(--color-canvas);
+}
+
+:root[data-theme='light'] .app-backdrop {
+  background:
+    radial-gradient(900px 500px at 15% -10%, rgb(2 132 199 / 0.07), transparent 60%),
+    radial-gradient(700px 460px at 92% 0%, rgb(124 58 237 / 0.06), transparent 62%),
+    var(--color-canvas);
+}
+
+/* ------------------------------------------------------------------ *
+ * Grid cells
+ * The animation player writes `data-state` straight onto these nodes,
+ * so a running search never re-renders the React tree. Everything a
+ * cell can look like therefore lives here, in one place.
+ * ------------------------------------------------------------------ */
+.cell {
+  position: relative;
+  border-right: 1px solid var(--color-line-soft);
+  border-bottom: 1px solid var(--color-line-soft);
+  background-color: var(--color-surface);
+  transition: background-color 140ms ease;
+}
+
+/* Three terrain tiers. Cost reads as warmth: the more it costs to cross, the
+   more amber the ground. */
+.cell[data-weight='light'] {
+  background-color: color-mix(in srgb, var(--color-terrain) 22%, var(--color-surface));
+}
+
+.cell[data-weight='medium'] {
+  background-color: color-mix(in srgb, var(--color-terrain) 42%, var(--color-surface));
+}
+
+.cell[data-weight='heavy'] {
+  background-color: color-mix(in srgb, var(--color-terrain) 68%, var(--color-surface));
+}
+
+/* A dotted overlay marks terrain, so cost stays legible once a search has
+   painted the cell blue — otherwise "why did it go around?" has no answer
+   on screen. Denser dots mean dearer ground. */
+.cell[data-weight]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  color: color-mix(in srgb, var(--color-terrain-dot) 45%, transparent);
+  pointer-events: none;
+}
+
+.cell[data-weight='light']::after {
+  background-size: 9px 9px;
+}
+
+.cell[data-weight='medium']::after {
+  background-size: 6px 6px;
+  color: color-mix(in srgb, var(--color-terrain-dot) 58%, transparent);
+}
+
+.cell[data-weight='heavy']::after {
+  background-size: 4px 4px;
+  color: color-mix(in srgb, var(--color-terrain-dot) 75%, transparent);
+}
+
+.cell[data-state='wall'] {
+  background-color: var(--color-wall);
+  animation: cell-wall 180ms ease-out;
+}
+
+.cell[data-state='visited'] {
+  background-color: var(--color-visited);
+  animation: cell-visit 420ms ease-out;
+}
+
+.cell[data-state='frontier'] {
+  background-color: color-mix(in srgb, var(--color-frontier) 55%, var(--color-surface));
+}
+
+.cell[data-state='path'] {
+  background-color: var(--color-path);
+  animation: cell-path 320ms ease-out;
+}
+
+.cell[data-state='start'],
+.cell[data-state='end'] {
+  background-color: transparent;
+  z-index: 1;
+}
+
+/* Endpoint markers are drawn as inset chips so dragging them reads clearly. */
+.cell[data-state='start']::before,
+.cell[data-state='end']::before {
+  content: '';
+  position: absolute;
+  inset: 12%;
+  border-radius: 30%;
+  box-shadow: 0 0 0 1px rgb(8 11 18 / 0.5);
+}
+
+.cell[data-state='start']::before {
+  background-color: var(--color-start);
+  box-shadow: 0 0 12px rgb(52 211 153 / 0.55);
+}
+
+.cell[data-state='end']::before {
+  background-color: var(--color-goal);
+  box-shadow: 0 0 12px rgb(251 113 133 / 0.55);
+}
+
+@keyframes cell-visit {
+  0% {
+    transform: scale(0.35);
+    background-color: var(--color-frontier);
+    border-radius: 45%;
+  }
+  55% {
+    background-color: color-mix(in srgb, var(--color-frontier) 70%, var(--color-visited));
+  }
+  100% {
+    transform: scale(1);
+    background-color: var(--color-visited);
+    border-radius: 0;
+  }
+}
+
+@keyframes cell-path {
+  0% {
+    transform: scale(0.5);
+    border-radius: 45%;
+  }
+  70% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+    border-radius: 0;
+  }
+}
+
+@keyframes cell-wall {
+  0% {
+    transform: scale(0.55);
+    border-radius: 40%;
+  }
+  100% {
+    transform: scale(1);
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell {
+    animation: none !important;
+    transition: none;
+  }
+}
+
+/* Panels share one elevation, tuned per theme. */
+.panel-shadow {
+  box-shadow: var(--shadow-panel);
+}
+
+/* Focus ring that stays legible on every surface in the app. */
+:where(button, select, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Sorting bars
+ * ------------------------------------------------------------------ */
+.bar {
+  flex: 1 1 0;
+  min-width: 1px;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--color-bar);
+  transition:
+    height 90ms linear,
+    background-color 110ms ease;
+}
+
+.bar[data-state='compare'] {
+  background-color: var(--color-accent);
+}
+
+.bar[data-state='move'] {
+  background-color: var(--color-goal);
+}
+
+.bar[data-state='sorted'] {
+  background-color: var(--color-start);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    transition: none;
+  }
+}

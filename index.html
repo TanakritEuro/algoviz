@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="AlgoViz — an interactive visualizer for pathfinding and sorting algorithms, built from scratch in React and TypeScript."
+    />
+    <title>AlgoViz — Pathfinding &amp; Sorting Visualizer</title>
+    <script>
+      // Applies the saved theme before first paint. Without this the page renders
+      // dark and then flips, which is worse than either theme on its own.
+      ;(function () {
+        try {
+          var saved = localStorage.getItem('algoviz:theme')
+          var theme =
+            saved === 'light' || saved === 'dark'
+              ? saved
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark'
+          document.documentElement.dataset.theme = theme
+        } catch (error) {
+          document.documentElement.dataset.theme = 'dark'
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
