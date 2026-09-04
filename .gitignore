@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# The build prompt this project was generated from — not part of the app.
+pathfinding-visualizer-prompt.md
