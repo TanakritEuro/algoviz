@@ -364,6 +364,9 @@ builds and publishes to GitHub Pages on every push to `main` (repo Settings → 
 Source: GitHub Actions). Pages serves it from a subpath, so `vite.config.ts` sets
 `base: '/algoviz/'`; change it if the repo is renamed, or the asset URLs will 404.
 
+The old Vercel URL (<https://algoviz-tau.vercel.app>) permanently redirects here via
+`vercel.json`.
+
 ## What I learned
 
 <!-- Personalize this — it is the part a reader remembers. What the build actually
