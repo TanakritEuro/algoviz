@@ -5,6 +5,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Served by GitHub Pages at /algoviz/ (the repo name, case-sensitive).
+  base: '/algoviz/',
   plugins: [react(), tailwindcss()],
   test: {
     environment: 'node',

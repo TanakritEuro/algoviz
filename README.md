@@ -359,9 +359,10 @@ whole app minus the one interaction that does not suit it.
 
 `npm run build` emits a static `dist/` — no backend, no environment variables.
 
-- **Vercel / Netlify** — build `npm run build`, publish `dist`. No config needed.
-- **GitHub Pages** — served from a subpath, so set `base: '/<repo-name>/'` in
-  `vite.config.ts` before building, or the asset URLs will 404.
+Live at **<https://tanakriteuro.github.io/algoviz/>**. `.github/workflows/deploy.yml` tests,
+builds and publishes to GitHub Pages on every push to `main` (repo Settings → Pages →
+Source: GitHub Actions). Pages serves it from a subpath, so `vite.config.ts` sets
+`base: '/algoviz/'`; change it if the repo is renamed, or the asset URLs will 404.
 
 ## What I learned
 
